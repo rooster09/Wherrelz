@@ -1,0 +1,64 @@
+USE [wheelzTask]
+GO
+/****** Object:  Trigger [dbo].[Entries_Insert]    Script Date: 28-Jul-23 3:12:43 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER trigger [dbo].[Entries_Insert] 
+	on [dbo].[Entries]
+	after insert
+	as
+	Begin
+	SET NOCOUNT ON;
+
+	DECLARE @entriesId INT,@accountNumber varchar(50),@accountName varchar(50), @currency int ,  @creditAmount varchar(250)
+	 , @debitAmount varchar(250)  , @remarks varchar(max) , @createdOn datetime ,
+	@userId int
+
+	SEt @entriesId = (Select ID FROM INSERTED)
+	SEt @accountNumber = (Select accountNumber FROM INSERTED)
+	SEt @accountName = (Select accountName FROM INSERTED)
+	SEt @currency = (Select currency FROM INSERTED)
+	SEt @creditAmount = (Select creditAmount FROM INSERTED)
+	SEt @debitAmount = (Select debitAmount FROM INSERTED)
+	SEt @remarks = (Select remarks FROM INSERTED)
+	SEt @createdOn = (Select createdOn FROM INSERTED)
+	SEt @userId = (Select userId FROM INSERTED)
+
+
+	insert into audit (entriesId,accountNumber,accountName,currency,creditAmount,debitAmount, remarks, createdOn,userId,actionPerformed,transactionDate)
+	values (@entriesId, @accountNumber,@accountName,@currency,@creditAmount,@debitAmount,@remarks,@createdOn,@userId,'Inserted',getdate())
+
+
+
+	END
+	
+	
+	
+	USE [wheelzTask]
+GO
+/****** Object:  Trigger [dbo].[Entries_update]    Script Date: 28-Jul-23 3:12:56 PM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+ALTER trigger [dbo].[Entries_update]
+	on [dbo].[Entries]
+	after update
+	as
+	Begin
+	SET NOCOUNT ON;
+
+	DECLARE @entriesId INT,@accountNumber varchar(50),@accountName varchar(50), @currency int ,  @creditAmount varchar(250)
+	 , @debitAmount varchar(250)  , @remarks varchar(max) , @createdOn datetime ,
+	@userId int
+
+		insert into audit (entriesId,accountNumber,accountName,currency,creditAmount,debitAmount, remarks, createdOn,userId,actionPerformed,transactionDate)
+	  SELECT i.id, d.accountNumber, d.accountName, d.currency, d.creditAmount, d.debitAmount,d.remarks, d.createdOn, d.userId, 'Updated',getdate()
+      FROM Inserted i
+      INNER JOIN Deleted d ON i.ID = d.ID
+
+	END
+
+	--drop trigger Entries_update
